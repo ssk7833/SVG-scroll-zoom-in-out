@@ -29,6 +29,7 @@ html, body {
 </div>
 <div id="virtualHeight"></div>
 <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.12/jquery.mousewheel.min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.min.js"></script>
 <script>
 $(document).ready(function() {
@@ -41,7 +42,6 @@ $(document).ready(function() {
 		{id: 1, left: 600, top: 120, angle: -30, scale: 0.2, frame: 5},
 		{id: 2, left: 850, top: 180, angle: 0, scale: 0.3, frame: 10}
 	];
-	
 	
 	$(window).scroll(function() {
 		animate();
@@ -66,7 +66,12 @@ $(document).ready(function() {
 	function animate() {
 		enterObjectNum = 0;
 		canvas.getObjects().map(function(object) {
-			object.animate(animateContent(object), {onChange: canvas.renderAll.bind(canvas)});
+			object.animate(animateContent(object), {
+				// animation delay time
+				duration: 100,
+				onChange: canvas.renderAll.bind(canvas),
+				easing: fabric.util.ease["easeInQuart"]
+			});
 		});
 		$("#content").css("background", bgColor[enterObjectNum]);
 	}
