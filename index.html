@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Scroll~</title>
+<style>
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0 auto;
+}
+
+#content{
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0;
+}
+
+#virtualHeight{
+	height: 3000px;
+}
+</style>
+</head>
+
+<body>
+<div id="content">
+<canvas id="fake3d"></canvas>
+</div>
+<div id="virtualHeight"></div>
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.min.js"></script>
+<script>
+$(document).ready(function() {
+	// control background color. When an object is too close, disappear it and change background
+	var enterObjectNum = 0;
+	var bgColor = ['steelblue', '#ccc', 'pink', 'white'];
+	// object initial status
+	var imageInital = [
+		{id: 0, left: 350, top: 60, angle: 30, scale: 0.1, frame: 0},
+		{id: 1, left: 600, top: 120, angle: -30, scale: 0.2, frame: 5},
+		{id: 2, left: 850, top: 180, angle: 0, scale: 0.3, frame: 10}
+	];
+	
+	
+	$(window).scroll(function() {
+		animate();
+	});
+
+	var canvas = new fabric.Canvas('fake3d');
+	canvas.selection = false;
+	window.addEventListener('resize', resizeCanvas, false);
+
+	function resizeCanvas() {
+		canvas.setHeight(window.innerHeight);
+		canvas.setWidth(window.innerWidth);
+		canvas.renderAll();
+	}
+
+	// resize on init
+	resizeCanvas();
+	
+	// initialization
+	init();
+	
+	function animate() {
+		enterObjectNum = 0;
+		canvas.getObjects().map(function(object) {
+			object.animate(animateContent(object), {onChange: canvas.renderAll.bind(canvas)});
+		});
+		$("#content").css("background", bgColor[enterObjectNum]);
+	}
+	
+	function animateContent(object) {
+		var position = $('body').scrollTop()/100;
+		var calObj = {};
+		
+		// do animate control
+		calObj.frame = imageInital[object.objectId].frame + position;
+		calObj.scale = imageInital[object.objectId].scale + position*0.02;
+		
+		if(calObj.frame>=15) {
+			calObj.left = imageInital[0].left + 15*50;
+			calObj.top = imageInital[0].top + 15*12;
+			calObj.scale = imageInital[object.objectId].scale + (calObj.frame-imageInital[2].frame)*0.1;
+			calObj.angle = 0;
+		}
+		else if(calObj.frame>=10) {
+			calObj.left = imageInital[object.objectId].left + position*50;
+			calObj.top = imageInital[object.objectId].top + position*12;
+			calObj.angle = 0;
+		}
+		else {
+			calObj.left = imageInital[object.objectId].left + position*50;
+			calObj.top = imageInital[object.objectId].top + position*12;
+			if(calObj.frame>=5)
+				calObj.angle = imageInital[1].angle + (calObj.frame-imageInital[1].frame)*6;
+			else
+				calObj.angle = imageInital[object.objectId].angle + position*-12;
+		}
+		
+		// if scale is greater than 1, disappear object by opacity = 0. And change the background
+		if(calObj.scale<=1) {
+			return {angle: calObj.angle, left: calObj.left, top: calObj.top, scaleX: calObj.scale, scaleY: calObj.scale, opacity: 1};
+		}
+		else {
+			enterObjectNum = enterObjectNum + 1;
+			return {angle: calObj.angle, left: calObj.left, top: calObj.top, scaleX: calObj.scale, scaleY: calObj.scale, opacity: 0};
+		}
+	}
+	
+	function init() {
+		imageInital.map(function(object) {
+			fabric.Image.fromURL('https://scontent.xx.fbcdn.net/hphotos-xfp1/v/t1.0-9/166838_168028149907946_2089255_n.jpg?oh=48dfe9ba74f5d34debed99d4e5b37da1&oe=562A9486', function(image) {
+				image.set({
+				  left: object.left,
+				  top: object.top,
+				  angle: object.angle,
+				  selectable: false,
+				  frame: object.frame,
+				  objectId: object.id,
+				});
+				image.setShadow({ color: 'rgba(0,0,0,0.5)', offsetX: 20, offsetY: 20, blur: 20 });
+
+				image.scale(object.scale);
+				canvas.add(image);
+				
+				// set z-index of each object
+				canvas.moveTo(image, object.id);
+			});
+		});
+		// do animate after rendering. prevent the scroll is not on the top when open the web
+		canvas.on('object:added', function() {
+			animate();
+		});
+	}
+});
+</script>
+</body>
+
+</html>
