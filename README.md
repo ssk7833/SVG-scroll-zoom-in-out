@@ -1,2 +1,4 @@
-# SVG-scroll-zoom-in-out
-Using Fabric.js to display a simple demo
+# canvas-scroll-zoom-in-out
+This is inspred by http://www.madogatari.jp/
+
+Pratice to do the same effect.
